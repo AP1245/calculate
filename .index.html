@@ -1,0 +1,192 @@
+
+<!DOCTYPE html>
+<html lang="he">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>אביחי פינס סחר מכוניות בע"מ</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            direction: rtl;
+            text-align: center;
+            background-color: #f4f7f9;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            background: #ffffff;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+        h1, h2 {
+            font-size: 2em;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        h1 {
+            color: #0066cc;
+        }
+        label {
+            display: block;
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            color: #555;
+        }
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            font-size: 1.1em;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #0066cc;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #004999;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f1f1f1;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            text-align: right;
+        }
+        .exchange-rate {
+            font-size: 1.2em;
+            margin-bottom: 20px;
+            color: #444;
+        }
+        .header {
+            background-color: #004999;
+            color: white;
+            padding: 10px;
+            border-radius: 10px 10px 0 0;
+        }
+        .footer {
+            margin-top: 20px;
+            font-size: 0.9em;
+            color: #aaa;
+        }
+        .logo {
+            max-width: 200px;
+            margin: 20px auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>אביחי פינס סחר מכוניות בע"מ</h1>
+            <p>חישוב ייבוא רכב בקלות ובדיוק</p>
+        </div>
+        <h2>כלי חישוב ייבוא רכב</h2>
+        <div class="exchange-rate" id="exchangeRateDisplay">
+            טוען שער הדולר...
+        </div>
+        <form id="importCalculator">
+            <label>מחיר בסיסי (CIF בדולר):</label>
+            <input type="number" id="cif" required placeholder="הכנס את מחיר ה-CIF"><br>
+            
+            <label>מחיר המחירון (בשקלים):</label>
+            <input type="number" id="priceList" required placeholder="הכנס את מחיר המחירון"><br>
+            
+            <label>ארץ מקור?</label>
+            <select id="countryOrigin">
+                <option value="yes">כן</option>
+                <option value="no">לא</option>
+            </select><br>
+            
+            <label>רכב חשמלי?</label>
+            <select id="isElectric">
+                <option value="no">לא</option>
+                <option value="yes">כן</option>
+            </select><br>
+            
+            <label>דרגת זיהום (1-15):</label>
+            <select id="pollutionGrade">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3" selected>3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+                <option value="10">10</option>
+                <option value="11">11</option>
+                <option value="12">12</option>
+                <option value="13">13</option>
+                <option value="14">14</option>
+                <option value="15">15</option>
+            </select><br>
+            
+            <button type="button" onclick="calculateImport()">חשב</button>
+        </form>
+
+        <div class="result" id="result"></div>
+    </div>
+    <div class="footer">
+        © 2025 אביחי פינס סחר מכוניות בע"מ
+    </div>
+
+    <script>
+        let exchangeRate = 3.62; // Default value
+
+        // Fetch exchange rate from exchangerate.host
+        async function fetchExchangeRate() {
+            try {
+                const response = await fetch('https://api.exchangerate.host/latest?base=USD&symbols=ILS');
+                const data = await response.json();
+                exchangeRate = data.rates.ILS.toFixed(2);
+                document.getElementById('exchangeRateDisplay').innerText = `שער הדולר הנוכחי: ${exchangeRate} ש"ח`;
+            } catch (error) {
+                document.getElementById('exchangeRateDisplay').innerText = `לא ניתן לטעון את שער הדולר. שימוש בערך ברירת מחדל: ${exchangeRate} ש"ח`;
+            }
+        }
+
+        fetchExchangeRate();
+
+        function calculateImport() {
+            const cif = parseFloat(document.getElementById("cif").value);
+            const priceList = parseFloat(document.getElementById("priceList").value);
+            const countryOrigin = document.getElementById("countryOrigin").value === "no";
+            const isElectric = document.getElementById("isElectric").value === "yes";
+            const pollutionGrade = parseInt(document.getElementById("pollutionGrade").value);
+
+            let basePrice = cif * exchangeRate;
+            if (countryOrigin) basePrice *= 1.07;
+
+            let purchaseTax = basePrice * (isElectric ? 0.45 : 0.83);
+            const greenDiscount = pollutionGrade <= 15 ? (15000 - (pollutionGrade - 1) * 1000) : 0;
+            purchaseTax -= greenDiscount;
+            if (isElectric) purchaseTax -= 35000;
+
+            const vat = (basePrice + purchaseTax) * 0.18;
+            const luxuryTax = priceList > 300000 ? (priceList - 300000) * 0.1 : 0;
+
+            const totalPrice = basePrice + purchaseTax + vat + luxuryTax;
+
+            document.getElementById("result").innerHTML = `
+                <h3>תוצאות:</h3>
+                <p>מחיר בסיסי: ${basePrice.toFixed(2)} ש"ח</p>
+                <p>מס קנייה: ${purchaseTax.toFixed(2)} ש"ח</p>
+                <p>מע"מ: ${vat.toFixed(2)} ש"ח</p>
+                <p>מס יוקרה: ${luxuryTax.toFixed(2)} ש"ח</p>
+                <p>מחיר סופי: ${totalPrice.toFixed(2)} ש"ח</p>
+            `;
+        }
+    </script>
+</body>
+</html>
